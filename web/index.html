@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSE Market Pulse — Live Financial Analysis Suite</title>
+  <meta name="description" content="Live automated market data analytics and CSV downloader for NSE India: Top Gainers, Upper Band Hitters, Volume Spurts, and 52-Week Highs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-background">
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+    <div class="glow-sphere glow-3"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Top Navbar -->
+    <header class="top-header">
+      <div class="brand-group">
+        <div class="brand-badge">
+          <span class="pulse-ring"></span>
+          <span class="pulse-core"></span>
+        </div>
+        <div class="brand-text">
+          <h1>NSE MARKET PULSE</h1>
+          <span class="brand-subtitle">Automated Institutional Market Ingestion Suite</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-pill" id="marketStatusPill">
+          <span class="status-dot"></span>
+          <span class="status-label">PIPELINE READY</span>
+        </div>
+
+        <button class="btn btn-primary" id="btnTriggerIngestion">
+          <svg class="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span id="btnTriggerText">Run Ingestion</span>
+        </button>
+
+        <button class="btn btn-glass theme-toggle" id="themeToggleBtn" title="Toggle Light / Dark Mode">
+          <svg class="icon-theme" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <span id="themeToggleText">Light</span>
+        </button>
+
+        <a href="/docs" target="_blank" class="btn btn-glass" title="Open Swagger API Documentation">
+          <span>API Docs</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- KPI Metric Cards Ribbon -->
+    <section class="kpi-grid">
+      <div class="kpi-card" id="kpiTotalCard">
+        <div class="kpi-header">
+          <span class="kpi-label">TOTAL SECURITIES</span>
+          <span class="kpi-badge accent-purple">4 Datasets</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalCount">—</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">Synced across active market tables</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">TOP GAINER (NIFTY)</span>
+          <span class="kpi-badge accent-green">Bullish</span>
+        </div>
+        <div class="kpi-value positive" id="kpiTopGainer">—</div>
+        <div class="kpi-footer" id="kpiTopGainerSub">Loading leader...</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">UPPER BAND HITTERS</span>
+          <span class="kpi-badge accent-cyan">Circuit Hit</span>
+        </div>
+        <div class="kpi-value" id="kpiUpperBandCount">—</div>
+        <div class="kpi-footer">Max price bands touched today</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">52-WEEK HIGHS</span>
+          <span class="kpi-badge accent-gold">Breakouts</span>
+        </div>
+        <div class="kpi-value" id="kpi52WeekCount">—</div>
+        <div class="kpi-footer">Equities touching multi-month highs</div>
+      </div>
+    </section>
+
+    <!-- Main Data Section -->
+    <main class="main-card">
+      <!-- Tabs Navigation -->
+      <nav class="tabs-nav" id="datasetTabs" role="tablist">
+        <button class="tab-btn active" data-dataset="top-gainers-losers" id="tab-top-gainers-losers">
+          <span class="tab-icon">🏆</span>
+          <span class="tab-title">Top Gainers & Losers</span>
+          <span class="tab-count" id="count-top-gainers-losers">0</span>
+        </button>
+
+        <button class="tab-btn" data-dataset="upper-band-hitters" id="tab-upper-band-hitters">
+          <span class="tab-icon">⚡</span>
+          <span class="tab-title">Upper Band Hitters</span>
+          <span class="tab-count" id="count-upper-band-hitters">0</span>
+        </button>
+
+        <button class="tab-btn" data-dataset="volume-gainers-spurts" id="tab-volume-gainers-spurts">
+          <span class="tab-icon">📊</span>
+          <span class="tab-title">Volume Gainers / Spurts</span>
+          <span class="tab-count" id="count-volume-gainers-spurts">0</span>
+        </button>
+
+        <button class="tab-btn" data-dataset="52-week-high" id="tab-52-week-high">
+          <span class="tab-icon">📈</span>
+          <span class="tab-title">52-Week High — Equity</span>
+          <span class="tab-count" id="count-52-week-high">0</span>
+        </button>
+      </nav>
+
+      <!-- Table Toolbar -->
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Filter by symbol, company name, or series..." autocomplete="off">
+          <button class="clear-search" id="clearSearchBtn" title="Clear search">&times;</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <span class="records-pill" id="recordsPill">Showing 0 records</span>
+          <button class="btn btn-outline" id="btnDownloadCSV">
+            <svg class="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Container -->
+      <div class="table-container" id="tableContainer">
+        <table class="data-table" id="dataTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+
+        <!-- Loading State -->
+        <div class="table-overlay hidden" id="tableLoading">
+          <div class="spinner"></div>
+          <p>Retrieving market dataset...</p>
+        </div>
+
+        <!-- Empty / No Results State -->
+        <div class="table-empty hidden" id="tableEmpty">
+          <div class="empty-icon">🔍</div>
+          <h3>No matching securities found</h3>
+          <p>Try modifying your search term or switch to another dataset tab.</p>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <footer class="table-footer">
+        <div class="footer-meta">
+          <span>Active File: <strong id="footerFilename">—</strong></span>
+          <span class="bullet">•</span>
+          <span>Last Ingested: <span id="footerUpdatedAt">—</span></span>
+        </div>
+        <div class="footer-links">
+          <span>WAF Bypass: <strong class="badge-tag">Chrome TLS Impersonation (curl_cffi)</strong></span>
+          <span class="bullet">•</span>
+          <span>Encoding: <strong>UTF-8 with BOM</strong></span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Ingestion Notification Toast / Modal -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
